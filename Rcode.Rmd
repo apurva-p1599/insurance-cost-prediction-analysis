@@ -1,7 +1,5 @@
 ---
-title: "FinalProject"
-Name: "Preeti Sonke,Apurva Patil(group-02)"
-output: html_document
+title: "insurance-cost-prediction-analysis"
 ---
 
 ```{r}
