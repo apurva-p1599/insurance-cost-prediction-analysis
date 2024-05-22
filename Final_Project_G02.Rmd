@@ -1,0 +1,284 @@
+---
+title: "FinalProject"
+Name: "Preeti Sonke,Apurva Patil(group-02)"
+output: html_document
+---
+
+```{r}
+# Import needed packages
+#library(tidyverse)
+library(ggplot2) 
+#library(tigerstats) 
+#library(reticulate)
+library(MASS)
+library(MLmetrics)
+library(dplyr)
+installed.packages("caret")
+library(caret)
+
+```
+## Part 1 : Data reading and Visualization
+
+
+```{r}
+
+ins <- read.csv("C:\\Users\\apurv\\OneDrive\\Documents\\SEM 1\\Programming for Data Analytics\\Final Project\\insurance.csv", header=TRUE, stringsAsFactors = FALSE) 
+
+```
+
+```{r}
+head(ins)
+```
+
+
+# To retrive the structure of the data
+```{r}
+str(ins)
+```
+# Number of observations (no of rows)
+
+```{r}
+nrow(ins)
+
+```
+> This dataset has 348 rows
+
+# Number of attributes ( no of columns)
+
+```{r}
+ncol(ins)
+```
+> This dataset has 7 colums 
+
+
+```{r}
+dim(ins)
+```
+> dimesion of insurance dataset are 348 rows and 7 colums  
+
+# Displying summary of dataset
+```{r}
+summary(ins)
+```
+
+# Showing Missing values
+
+```{r}
+nullValues<-sum(is.na(ins))
+nullValues
+```
+# Finding duplicate values 
+```{r}
+sum(duplicated(ins))
+
+```
+
+> found 0 duplicate values 
+
+```{r}
+sapply(ins, class) 
+```
+> showing the datatype of each column variables .
+
+
+# Displaying the structure of the smoker column from the ins dataframe, 
+```{r}
+str(ins$smoker)
+```
+
+
+# Part 2: Graphical Representation
+
+## Histogram distribution of insurance charges .
+
+```{r}
+hist(ins$charges, 
+     main = "Distribution of Insurance Charges", 
+     xlab = "Insurance Charges", 
+     ylab = "Frequency", 
+     col = "lightblue", 
+     border = "black") 
+
+```
+
+>  There's a higher frequency of insurance charges in the lower range (up to approximately $10,000).
+The frequency decreases as the charge amount increases.
+There are fewer instances of very high insurance charges (beyond $30,000).
+The distribution appears right-skewed, indicating that higher insurance charges are less common.
+The majority of insurance charges fall within a modest range, suggesting most insurance costs are not extremely high.
+
+## Histogram of Insurance Charges with Q1 and Q3
+
+```{r}
+
+
+# To Calculate Q1 and Q3 for charges
+Q1 <- quantile(ins$charges, 0.25)
+Q3 <- quantile(ins$charges, 0.75)
+
+
+hist(ins$charges, 
+     main = "Histogram of Insurance Charges with Q1 and Q3", 
+     xlab = "Insurance Charges", 
+     ylab = "Frequency", 
+     col = "lightblue", 
+     border = "black")
+
+# Add vertical lines for Q1 and Q3
+abline(v = Q1, col = "black", lwd = 2, lty = 2)
+abline(v = Q3, col = "black", lwd = 2, lty = 2)
+
+
+
+```
+
+> The histogram for insurance charges with marked Q1 and Q3 indicates that the middle 50% of the data (the interquartile range) lies between these two quartiles. The Q1 marker shows where 25% of the charges fall below, and the Q3 marker shows where 25% of the charges fall above, 
+
+# Boxplot of Charges by Smoker Status
+```{r}
+# Assuming 'smoker' is a factor with two levels: 0 for non-smokers and 1 for smokers
+boxplot(charges ~ smoker, data = ins,
+        main = "Boxplot of Charges by Smoker Status",
+        col = c("lightblue", "lightgreen"))  
+```
+
+> The boxplot illustrates that insurance charges are significantly higher for smokers compared to non-smokers, with smokers showing a wider range and higher median of charges. Non-smokers have a tighter distribution of charges with a lower median and fewer outliers.
+
+
+
+# Overlay Histogram of Charges for Smokers vs. Non-Smokers
+
+```{r}
+library(ggplot2)
+ins$smoker <- as.factor(ins$smoker)
+
+
+ggplot(ins, aes(x = charges, fill = smoker)) +
+  geom_histogram(aes(y = ..density..), position = 'identity', alpha = 0.5, bins = 30) +
+  labs(title = 'Overlay Histogram of Charges for Smokers vs. Non-Smokers',
+       x = 'Charges',
+       y = 'Density') +
+  scale_fill_manual(values = c('blue', 'red'))
+
+
+```
+> 
+The histogram overlays the density of insurance charges for smokers (red) and non-smokers (blue).
+Smokers tend to have higher insurance charges, as indicated by the red bars extending further along the x-axis.
+Both groups show a right-skewed distribution, with the majority of charges clustered at the lower end.
+
+
+
+
+## Part 3:Data Analysis 
+
+## Hypothesis testing
+
+# 1
+# Effect of smoker on charges
+Null Hypothesis:There is no difference in mean charges between smokers and non-smokers
+Alternative Hypothesis: There is a difference in mean charges between smokers and non-smokers
+Performing independent two sample t-test
+
+```{r}
+t.test(charges ~ smoker, data=ins)
+```
+> Hypothesis testing results for charges by smoker status:
+Null Hypothesis: No difference in average charges between smokers and non-smokers
+Alternative Hypothesis: Average charges differ between smokers and non-smokers
+Test Used: Two sample t-test
+Results:
+t-statistic = -18.192, df = 94.439, extremely low p-value <0.0001
+Average charges significantly higher for smokers (mean=$32,313.946) vs non-smokers (mean=$8,465.493)
+95% CI excludes zero, indicating observed mean difference very unlikely to include true population difference of zero
+Conclusion:
+Very strong statistical evidence to reject the null hypothesis
+Compelling support that smoker status has highly significant impact on charges
+Alternative hypothesis supported - average charges differ significantly between smokers and non-smokers in the population
+
+# 2
+# Effect of sex on charges
+Null Hypothesis: There is no difference in mean charges between males and females
+Alternative Hypothesis: There is a difference in mean charges between males and females
+Performing independent two sample t-test
+
+
+```{r}
+t.test(charges ~ sex, data=ins)
+```
+> Hypothesis testing results for charges by sex:
+Null Hypothesis: No difference in average charges between males and females
+Alternative Hypothesis: Average charges differ between males and females
+Test Used: Two sample t-test
+Results:
+t-statistic = -1.841, df = 335.22, p-value = 0.0665
+Average charges higher for males (mean=$15,233.78) vs females (mean=$12,756.36)
+95% CI includes zero, ranging from -$5,124 to $170
+Conclusion:
+P-value above the typical 0.05 threshold, so the null hypothesis cannot be rejected
+Evidence is insufficient to determine a statistically significant difference in average charges by sex
+While point estimates suggest higher charges for males, difference could also be due to chance
+Alternative hypothesis of different average charges by sex is not strongly supported based on this sample data
+
+# Linear Regression
+
+Here we have taken charges as response variable in linear regression
+Performance of forward stepwise regression and backward stepwise regression on the insurance dataset to build linear regression models with subset selection:
+
+Splitting data into train and test
+
+```{r}
+set.seed(123)
+split <- createDataPartition(ins$charges, p=0.7, list=FALSE)
+training <- ins[split,]
+testing <- ins[-split,]
+```
+
+Fit initial null model and full Model
+```{r}
+init <- lm(charges~1, data=training)
+full <- lm(charges ~ age + sex + bmi + children + smoker + region, data=training)
+
+```
+
+Perform forward stepwise selection
+```{r}
+forwardModel <- stepAIC(init,
+scope = formula(full),
+direction="forward",
+trace=FALSE)
+summary(forwardModel)
+```
+
+
+Predict on test data
+```{r}
+pred_forward <- predict(forwardModel, newdata=testing)
+```
+
+Evaluate model
+```{r}
+MAE(testing$charges, pred_forward)  
+MSE(testing$charges, pred_forward)
+```
+
+Perform backward stepwise selection
+```{r}
+backwardModel <- stepAIC(init,
+scope = formula(full),
+direction="backward",
+trace=FALSE)
+summary(backwardModel)
+```
+
+
+Predict on test data
+```{r}
+pred_backward <- predict(backwardModel, newdata=testing)
+```
+
+Evaluate model
+```{r}
+MAE(testing$charges, pred_backward)  
+MSE(testing$charges, pred_backward)
+```
